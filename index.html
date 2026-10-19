@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e9efdf"><meta name="description" content="Family Chef: menu settimanale, ricette e spesa per la famiglia.">
+<link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css">
+<title>Family Chef</title>
+</head>
+<body>
+<header class="topbar">
+  <img class="brand-mark" src="icon.svg" alt=""><div class="brand-copy"><div class="brand">family chef</div><div class="tagline">La settimana, con più gusto e meno pensieri</div></div>
+  <button class="icon-btn" id="settingsBtn" aria-label="Impostazioni" title="Impostazioni"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15 .1.1a1.8 1.8 0 0 1-2.5 2.5l-.1-.1a1.8 1.8 0 0 0-3 .9v.2a1.8 1.8 0 0 1-3.6 0v-.2a1.8 1.8 0 0 0-3-.9l-.1.1a1.8 1.8 0 0 1-2.5-2.5l.1-.1a1.8 1.8 0 0 0-.9-3H3.7a1.8 1.8 0 0 1 0-3.6h.2a1.8 1.8 0 0 0 .9-3l-.1-.1a1.8 1.8 0 0 1 2.5-2.5l.1.1a1.8 1.8 0 0 0 3-.9v-.2a1.8 1.8 0 0 1 3.6 0v.2a1.8 1.8 0 0 0 3 .9l.1-.1a1.8 1.8 0 0 1 2.5 2.5l-.1.1a1.8 1.8 0 0 0 .9 3h.2a1.8 1.8 0 0 1 0 3.6h-.2a1.8 1.8 0 0 0-.9 3Z"/></svg></button>
+</header>
+<main>
+<section class="welcome">
+  <div class="eyebrow" id="todayLabel">ORGANIZZIAMO LA SETTIMANA</div>
+  <h1>La tua settimana<br><em>a tavola</em></h1>
+  <p>Pranzi, cene e schiscette organizzati in un unico posto.</p>
+  <div class="quick-stats">
+    <div><strong id="mealCount">7</strong><span>giorni pianificati</span></div>
+    <div><strong id="cookedCount">0</strong><span>ricette cucinate</span></div>
+    <div><strong id="shoppingCount">0</strong><span>prodotti in lista</span></div>
+  </div>
+</section>
+<nav class="tabs bottom-nav" aria-label="Sezioni principali">
+<button class="tab active" data-view="menu" aria-label="Menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3Z"/></svg><span>Menu</span></button>
+<button class="tab" data-view="recipes" aria-label="Ricette cucinate"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Archivio</span></button>
+<button class="tab" data-view="favorites" aria-label="Preferiti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 20-1.4-1.3C5.5 14 2 10.8 2 6.9A4.9 4.9 0 0 1 6.9 2c2 0 3.9.9 5.1 2.4A6.6 6.6 0 0 1 17.1 2 4.9 4.9 0 0 1 22 6.9c0 3.9-3.5 7.1-8.6 11.8Z"/></svg><span>Preferiti</span></button>
+<button class="tab" data-view="shopping" aria-label="Lista della spesa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg><span>Spesa</span></button>
+</nav>
+<section id="view-menu" class="view active">
+  <div class="section-heading"><div><div class="eyebrow">PIANO SETTIMANALE</div><h2 id="weekTitle">Settimana corrente</h2><p class="muted" id="weekRange"></p></div></div>
+  <div class="notice"><span>Puoi modificare ogni pasto. Le ricette del menu si aprono con un tocco.</span></div>
+  <div class="menu-actions">
+    <button class="primary-btn" id="generateMenu">Rigenera menu</button>
+    <button class="secondary-btn" id="changeMenu">Cambia menu</button>
+  </div>
+  <div id="menuList" class="menu-list"></div>
+  <button class="primary-btn full" id="makeShopping">Crea la lista della spesa</button>
+</section>
+<section id="view-recipes" class="view">
+  <div class="section-heading"><div><div class="eyebrow">IL TUO ARCHIVIO</div><h2>Ricette cucinate</h2></div></div>
+  <p class="muted">Qui trovi solo le ricette che hai segnato come cucinate nelle settimane precedenti. Le ricette della settimana corrente non vengono archiviate automaticamente.</p>
+  <input id="recipeSearch" class="search" placeholder="Cerca tra le ricette cucinate">
+  <div id="recipeList" class="recipe-grid"></div>
+  <div class="card add-card"><h3>Aggiungi una ricetta cucinata</h3><p>Puoi salvare una ricetta nell'archivio personale.</p><button class="secondary-btn" id="addRecipeBtn">Aggiungi ricetta</button></div>
+</section>
+<section id="view-favorites" class="view">
+  <div class="section-heading"><div><div class="eyebrow">LE TUE SCELTE</div><h2>Preferiti</h2></div></div>
+  <p class="muted">Salva qui le ricette che vuoi ritrovare facilmente.</p>
+  <div id="favoriteList" class="recipe-grid"></div>
+</section>
+<section id="view-shopping" class="view">
+  <div class="section-heading"><div><div class="eyebrow">TUTTO IN UN SOLO POSTO</div><h2>Lista della spesa</h2></div><button class="small-btn" id="clearChecked">Pulisci spuntati</button></div>
+  <p class="muted">La lista è modificabile. Controlla sempre ingredienti e allergeni dei prodotti confezionati.</p>
+  <form id="shoppingForm" class="inline-form"><input id="shoppingInput" placeholder="Aggiungi un prodotto" required><button class="primary-btn">Aggiungi</button></form>
+  <div id="shoppingList" class="shopping-list"></div>
+  <button class="secondary-btn full" id="exportList">Copia lista</button>
+</section>
+<section id="view-settings" class="view">
+  <div class="section-heading"><div><div class="eyebrow">REGOLE DI CASA</div><h2>Impostazioni</h2></div></div>
+  <div class="rule-card danger"><div><strong>Allergia del papà</strong><p>Escludere legumi e derivati, arachidi e anacardi. Controllare ingredienti, allergeni e possibili contaminazioni crociate. In caso di dubbio, non usare il prodotto.</p></div></div>
+  <div class="rule-card"><div><strong>Olivia</strong><p>Adattare consistenza, taglio e cottura all'età e alle capacità. Prelevare la sua porzione prima di aggiungere sale e verificare i rischi di soffocamento.</p></div></div>
+  <button class="secondary-btn full" id="exportData">Esporta i miei dati</button>
+  <button class="text-btn full" id="clearData">Cancella i dati salvati su questo dispositivo</button>
+  <p class="muted tiny">I dati sono salvati nel browser di questo dispositivo e non si sincronizzano ancora con altri telefoni.</p>
+</section>
+</main>
+<div id="toast" class="toast" role="status"></div>
+<dialog id="recipeDialog"><form method="dialog" id="recipeForm" class="dialog-content">
+<button class="close-btn" value="cancel" aria-label="Chiudi" title="Chiudi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="eyebrow">RICETTA</div><h2 id="recipeDialogTitle">Dettaglio ricetta</h2>
+<div id="recipeDialogBody" class="recipe-detail"></div>
+<div class="dialog-actions"><button type="button" class="secondary-btn" id="favoriteToggle">Aggiungi ai preferiti</button><button type="button" class="primary-btn" id="markCooked">Segna come cucinata</button></div>
+</form></dialog>
+<dialog id="addDialog"><form method="dialog" id="addForm" class="dialog-content">
+<button class="close-btn" value="cancel" aria-label="Chiudi" title="Chiudi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="eyebrow">ARCHIVIO PERSONALE</div><h2>Aggiungi ricetta</h2>
+<label>Nome<input id="newRecipeName" required placeholder="Nome della ricetta"></label>
+<label>Ingredienti<textarea id="newRecipeIngredients" required placeholder="Ingredienti separati da virgola"></textarea></label>
+<label>Preparazione<textarea id="newRecipeSteps" placeholder="Procedimento"></textarea></label>
+<label>Tempo (minuti)<input id="newRecipeTime" type="number" min="1" placeholder="Tempo"></label>
+<button class="primary-btn full" value="default">Salva ricetta</button>
+</form></dialog>
+<script src="svezzy-data.js"></script><script src="app.js"></script>
+</body></html>
