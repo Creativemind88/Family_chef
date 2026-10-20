@@ -24,10 +24,10 @@ let activeRecipe=null, activeMealIndex=null;
 function load(){
  try{
   const old=JSON.parse(localStorage.getItem(KEY)||'null');
-  if(old)return {...{menus:{},cooked:[],favorites:[],recipes:[],shopping:[],settings:{}},...old,settings:{adult1Name:'',adult2Name:'',childName:'Olivia',childAge:12,a1LunchHome:false,a1LunchBox:false,a2LunchHome:false,a2LunchBox:true,a1Dinner:true,a2Dinner:true,childDinner:true,preferences:'',allergies:'Papà: allergia a legumi e derivati, arachidi e anacardi.' ,...(old.settings||{})}};
+  if(old)return {...{menus:{},cooked:[],favorites:[],recipes:[],shopping:[],settings:{}},...old,settings:{adult1Name:'',adult2Name:'',childName:'Olivia',childAge:12,a1LunchHome:false,a1LunchBox:false,a2LunchHome:false,a2LunchBox:true,a1Dinner:true,a2Dinner:true,childDinner:true,foodStyle:'varia',dishStyle:'mixed',cookTime:'30',complexity:'simple',cuisines:['italiana','mediterranea'],leftovers:'reuse',adult1Avoid:[],adult2Avoid:['legumi','arachidi','anacardi'],childAvoid:[],...(old.settings||{})}};
   const legacy=JSON.parse(localStorage.getItem('familyChef_v1')||'null');
-  return {menus:{},cooked:[],favorites:[],recipes:[],shopping:[],settings:{adult1Name:'',adult2Name:'',childName:'Olivia',childAge:12,a1LunchHome:false,a1LunchBox:false,a2LunchHome:false,a2LunchBox:true,a1Dinner:true,a2Dinner:true,childDinner:true,preferences:'',allergies:'Papà: allergia a legumi e derivati, arachidi e anacardi.'},legacyAvailable:!!legacy};
- }catch{return {menus:{},cooked:[],favorites:[],recipes:[],shopping:[],settings:{childName:'Olivia',childAge:12,a2LunchBox:true,a1Dinner:true,a2Dinner:true,childDinner:true,allergies:'Papà: allergia a legumi e derivati, arachidi e anacardi.'}}}
+  return {menus:{},cooked:[],favorites:[],recipes:[],shopping:[],settings:{adult1Name:'',adult2Name:'',childName:'Olivia',childAge:12,a1LunchHome:false,a1LunchBox:false,a2LunchHome:false,a2LunchBox:true,a1Dinner:true,a2Dinner:true,childDinner:true,foodStyle:'varia',dishStyle:'mixed',cookTime:'30',complexity:'simple',cuisines:['italiana','mediterranea'],leftovers:'reuse',adult1Avoid:[],adult2Avoid:['legumi','arachidi','anacardi'],childAvoid:[]},legacyAvailable:!!legacy};
+ }catch{return {menus:{},cooked:[],favorites:[],recipes:[],shopping:[],settings:{childName:'Olivia',childAge:12,a2LunchBox:true,a1Dinner:true,a2Dinner:true,childDinner:true,foodStyle:'varia',dishStyle:'mixed',cookTime:'30',complexity:'simple',cuisines:['italiana','mediterranea'],leftovers:'reuse',adult1Avoid:[],adult2Avoid:['legumi','arachidi','anacardi'],childAvoid:[]}}}
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(state));renderAll()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -41,9 +41,9 @@ function peopleForMeal(){
  else {if(s.a1Dinner)names.push(s.adult1Name||'Adulto 1');if(s.a2Dinner)names.push(s.adult2Name||'Adulto 2');if(s.childDinner)names.push(`${s.childName||'Bambino/a'} (${s.childAge||'età da indicare'} mesi)`);}
  return names.length?`${names.length} ${names.length===1?'persona':'persone'}: `+names.join(', '):'Persone da configurare nelle Impostazioni';
 }
-const settingIds=['adult1Name','adult2Name','childName','childAge','otherPeople','a1LunchHome','a1LunchBox','a2LunchHome','a2LunchBox','a1Dinner','a2Dinner','childDinner','preferences','allergies'];
-function fillSettings(){const s=state.settings||{};settingIds.forEach(id=>{const el=$('#'+id);if(!el)return;const val=s[id];if(el.type==='checkbox')el.checked=!!val;else if(val!==undefined)el.value=val;});}
-function readSettings(){const s={...(state.settings||{})};settingIds.forEach(id=>{const el=$('#'+id);if(!el)return;s[id]=el.type==='checkbox'?el.checked:el.value;});state.settings=s;save();toast('Impostazioni salvate');}
+const settingIds=['adult1Name','adult2Name','childName','childAge','a1LunchHome','a1LunchBox','a2LunchHome','a2LunchBox','a1Dinner','a2Dinner','childDinner','foodStyle','dishStyle','cookTime','complexity','leftovers'];
+function fillSettings(){const s=state.settings||{};settingIds.forEach(id=>{const el=$('#'+id);if(!el)return;const val=s[id];if(el.type==='checkbox')el.checked=!!val;else if(val!==undefined)el.value=val;});$$('input[name="cuisine"]').forEach(el=>el.checked=(s.cuisines||['italiana','mediterranea']).includes(el.value));['adult1Avoid','adult2Avoid','childAvoid'].forEach(key=>$$(`input[name="${key}"]`).forEach(el=>el.checked=(s[key]||[]).includes(el.value)));}
+function readSettings(){const s={...(state.settings||{})};settingIds.forEach(id=>{const el=$('#'+id);if(!el)return;s[id]=el.type==='checkbox'?el.checked:el.value;});s.cuisines=$$('input[name="cuisine"]:checked').map(el=>el.value);if(s.cuisines.includes('any'))s.cuisines=['any'];['adult1Avoid','adult2Avoid','childAvoid'].forEach(key=>s[key]=$$(`input[name="${key}"]:checked`).map(el=>el.value));state.settings=s;save();toast('Impostazioni salvate');} 
 $('#familySettingsForm').onsubmit=e=>{e.preventDefault();readSettings()};fillSettings();
 
 function currentMenu(){const key=weekKey();if(!state.menus[key]){state.menus[key]=buildWeeklyMenu();if(typeof generateShoppingFromMenu==='function')generateShoppingFromMenu();}return state.menus[key]}
@@ -62,7 +62,19 @@ function usableSvezzyRecipes(){
 function menuCandidates(){
  const all=[...familyRecipes,...usableSvezzyRecipes()];
  const seen=new Set();
- return all.filter(r=>!allergenBlocked(r)&&!seen.has(r.name)&&(seen.add(r.name),true));
+ const settings=state.settings||{};
+ const selectedAvoid=[...(settings.adult1Avoid||[]),...(settings.adult2Avoid||[]),...(settings.childAvoid||[])];
+ const avoidPatterns={legumi:/\b(ceci|cece|lenticchie|lenticchia|fagioli|fagiolo|piselli|pisello|soia|tofu|tempeh|legumi|hummus|lupini|lupino|edamame)\b/i,arachidi:/\barachid/i,anacardi:/\banacard/i,lattosio:/\b(latte|burro|panna|ricotta|mozzarella|formaggio|parmigiano|yogurt)\b/i,glutine:/\b(farina|pasta|pane|cous cous|cous-cous|orzo|farro|seitan)\b/i,uova:/\buova?\b/i,pesce:/\b(pesce|salmone|merluzzo|tonno|orata|branzino|gamberi|crostacei)\b/i};
+ const maxTime=Number(settings.cookTime||60); const style=settings.foodStyle||'varia';
+ return all.filter(r=>{
+  if(allergenBlocked(r))return false;
+  const txt=`${r.name} ${(r.ingredients||[]).join(' ')}`;
+  if(selectedAvoid.some(a=>avoidPatterns[a]?.test(txt)))return false;
+  const time=Number.parseInt(r.time,10); if(Number.isFinite(time)&&time>maxTime)return false;
+  if(style==='vegetariana'&&/\b(pollo|tacchino|manzo|maiale|salmone|merluzzo|pesce|carne|tonno|gamberi)\b/i.test(txt))return false;
+  if(style==='vegana'&&/\b(uova?|ricotta|formaggio|parmigiano|latte|burro|panna|yogurt|pollo|tacchino|manzo|maiale|salmone|merluzzo|pesce|carne|tonno|gamberi|miele)\b/i.test(txt))return false;
+  if(seen.has(r.name))return false; seen.add(r.name); return true;
+ });
 }
 function buildWeeklyMenu(){
  const pool=menuCandidates();
