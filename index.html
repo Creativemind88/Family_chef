@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#e9efdf"><meta name="description" content="Family Chef: menu settimanale, ricette e spesa per la famiglia.">
-<link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css">
+<link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><link rel="manifest" href="manifest.json"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet"><link rel="stylesheet" href="styles.css">
 <title>Family Chef</title>
 </head>
 <body>
 <header class="topbar">
-  <img class="brand-mark" src="icon.svg" alt=""><div class="brand-copy"><div class="brand">family chef</div><div class="tagline">La settimana, con più gusto e meno pensieri</div></div>
-  <button class="icon-btn" id="settingsBtn" aria-label="Impostazioni" title="Impostazioni"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15 .1.1a1.8 1.8 0 0 1-2.5 2.5l-.1-.1a1.8 1.8 0 0 0-3 .9v.2a1.8 1.8 0 0 1-3.6 0v-.2a1.8 1.8 0 0 0-3-.9l-.1.1a1.8 1.8 0 0 1-2.5-2.5l.1-.1a1.8 1.8 0 0 0-.9-3H3.7a1.8 1.8 0 0 1 0-3.6h.2a1.8 1.8 0 0 0 .9-3l-.1-.1a1.8 1.8 0 0 1 2.5-2.5l.1.1a1.8 1.8 0 0 0 3-.9v-.2a1.8 1.8 0 0 1 3.6 0v.2a1.8 1.8 0 0 0 3 .9l.1-.1a1.8 1.8 0 0 1 2.5 2.5l-.1.1a1.8 1.8 0 0 0 .9 3h.2a1.8 1.8 0 0 1 0 3.6h-.2a1.8 1.8 0 0 0-.9 3Z"/></svg></button>
+  <img class="brand-mark" src="icon.svg" alt=""><div class="brand-copy"><div class="brand">family chef</div><div class="tagline">La settimana con + gusto, meno sprechi</div></div>
+  <button class="icon-btn" id="settingsBtn" aria-label="Impostazioni" title="Impostazioni"><span class="material-symbols-rounded">settings</span></button>
 </header>
 <main>
 <section class="welcome">
@@ -24,22 +24,17 @@
 </section>
 <nav class="tabs bottom-nav" aria-label="Sezioni principali">
 <button class="tab active" data-view="menu" aria-label="Menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3Z"/></svg><span>Menu</span></button>
-<button class="tab" data-view="recipes" aria-label="Ricette cucinate"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Archivio</span></button>
+<button class="tab" data-view="recipes" aria-label="Ricette"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Ricette</span></button>
 <button class="tab" data-view="favorites" aria-label="Preferiti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 20-1.4-1.3C5.5 14 2 10.8 2 6.9A4.9 4.9 0 0 1 6.9 2c2 0 3.9.9 5.1 2.4A6.6 6.6 0 0 1 17.1 2 4.9 4.9 0 0 1 22 6.9c0 3.9-3.5 7.1-8.6 11.8Z"/></svg><span>Preferiti</span></button>
 <button class="tab" data-view="shopping" aria-label="Lista della spesa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg><span>Spesa</span></button>
 </nav>
 <section id="view-menu" class="view active">
-  <div class="section-heading"><div><div class="eyebrow">PIANO SETTIMANALE</div><h2 id="weekTitle">Settimana corrente</h2><p class="muted" id="weekRange"></p></div></div>
-  <div class="notice"><span>Puoi modificare ogni pasto. Le ricette del menu si aprono con un tocco.</span></div>
-  <div class="menu-actions">
-    <button class="primary-btn" id="generateMenu">Rigenera menu</button>
-    <button class="secondary-btn" id="changeMenu">Cambia menu</button>
-  </div>
+  <div class="section-heading"><div><div class="eyebrow">IL TUO PIANO SETTIMANALE</div><h2 id="weekTitle">Settimana corrente</h2><p class="muted" id="weekRange"></p></div><button class="icon-btn regenerate-btn" id="generateMenu" aria-label="Rigenera menu" title="Rigenera menu"><span class="material-symbols-rounded">autorenew</span></button></div>
   <div id="menuList" class="menu-list"></div>
   <button class="primary-btn full" id="makeShopping">Crea la lista della spesa</button>
 </section>
 <section id="view-recipes" class="view">
-  <div class="section-heading"><div><div class="eyebrow">IL TUO ARCHIVIO</div><h2>Ricette cucinate</h2></div></div>
+  <div class="section-heading"><div><div class="eyebrow">IL TUO RICETTARIO</div><h2>Ricette</h2></div></div>
   <p class="muted">Qui trovi solo le ricette che hai segnato come cucinate nelle settimane precedenti. Le ricette della settimana corrente non vengono archiviate automaticamente.</p>
   <input id="recipeSearch" class="search" placeholder="Cerca tra le ricette cucinate">
   <div id="recipeList" class="recipe-grid"></div>
@@ -59,6 +54,19 @@
 </section>
 <section id="view-settings" class="view">
   <div class="section-heading"><div><div class="eyebrow">REGOLE DI CASA</div><h2>Impostazioni</h2></div></div>
+  <form id="familySettingsForm" class="form-card settings-form">
+    <h3>Persone e pasti</h3>
+    <label>Nome adulto 1<input id="adult1Name" placeholder="Es. Mamma"></label>
+    <label>Nome adulto 2<input id="adult2Name" placeholder="Es. Papà"></label>
+    <div class="form-row"><label>Nome bambino/a<input id="childName" placeholder="Es. Olivia"></label><label>Età (mesi)<input id="childAge" type="number" min="0" max="216" value="12"></label></div>
+    <label>Altre persone / note<input id="otherPeople" placeholder="Es. nonni il sabato"></label>
+    <fieldset><legend>Pranzo adulto 1</legend><label class="check-label"><input type="checkbox" id="a1LunchHome"> Pranza a casa</label><label class="check-label"><input type="checkbox" id="a1LunchBox"> Porta schiscetta</label></fieldset>
+    <fieldset><legend>Pranzo adulto 2</legend><label class="check-label"><input type="checkbox" id="a2LunchHome"> Pranza a casa</label><label class="check-label"><input type="checkbox" id="a2LunchBox" checked> Porta schiscetta</label></fieldset>
+    <fieldset><legend>Cena</legend><label class="check-label"><input type="checkbox" id="a1Dinner" checked> Adulto 1</label><label class="check-label"><input type="checkbox" id="a2Dinner" checked> Adulto 2</label><label class="check-label"><input type="checkbox" id="childDinner" checked> Bambino/a</label></fieldset>
+    <label>Gusti e preferenze<textarea id="preferences" placeholder="Piatti preferiti, ingredienti da limitare..."></textarea></label>
+    <label>Allergie e intolleranze<textarea id="allergies" placeholder="Mantieni qui i vincoli alimentari della famiglia"></textarea></label>
+    <button class="primary-btn full" type="submit">Salva impostazioni</button>
+  </form>
   <div class="rule-card danger"><div><strong>Allergia del papà</strong><p>Escludere legumi e derivati, arachidi e anacardi. Controllare ingredienti, allergeni e possibili contaminazioni crociate. In caso di dubbio, non usare il prodotto.</p></div></div>
   <div class="rule-card"><div><strong>Olivia</strong><p>Adattare consistenza, taglio e cottura all'età e alle capacità. Prelevare la sua porzione prima di aggiungere sale e verificare i rischi di soffocamento.</p></div></div>
   <button class="secondary-btn full" id="exportData">Esporta i miei dati</button>
@@ -70,7 +78,7 @@
 <dialog id="recipeDialog"><form method="dialog" id="recipeForm" class="dialog-content">
 <button class="close-btn" value="cancel" aria-label="Chiudi" title="Chiudi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="eyebrow">RICETTA</div><h2 id="recipeDialogTitle">Dettaglio ricetta</h2>
 <div id="recipeDialogBody" class="recipe-detail"></div>
-<div class="dialog-actions"><button type="button" class="secondary-btn" id="favoriteToggle">Aggiungi ai preferiti</button><button type="button" class="primary-btn" id="markCooked">Segna come cucinata</button></div>
+<div class="dialog-actions"><button type="button" class="secondary-btn" id="editMealBtn">Cambia questo pasto</button><button type="button" class="secondary-btn" id="favoriteToggle">Aggiungi ai preferiti</button><button type="button" class="primary-btn" id="markCooked">Segna come cucinata</button></div>
 </form></dialog>
 <dialog id="addDialog"><form method="dialog" id="addForm" class="dialog-content">
 <button class="close-btn" value="cancel" aria-label="Chiudi" title="Chiudi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="eyebrow">ARCHIVIO PERSONALE</div><h2>Aggiungi ricetta</h2>

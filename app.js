@@ -24,17 +24,29 @@ let activeRecipe=null, activeMealIndex=null;
 function load(){
  try{
   const old=JSON.parse(localStorage.getItem(KEY)||'null');
-  if(old)return {...{menus:{},cooked:[],favorites:[],recipes:[],shopping:[]},...old};
+  if(old)return {...{menus:{},cooked:[],favorites:[],recipes:[],shopping:[],settings:{}},...old,settings:{adult1Name:'',adult2Name:'',childName:'Olivia',childAge:12,a1LunchHome:false,a1LunchBox:false,a2LunchHome:false,a2LunchBox:true,a1Dinner:true,a2Dinner:true,childDinner:true,preferences:'',allergies:'Papà: allergia a legumi e derivati, arachidi e anacardi.' ,...(old.settings||{})}};
   const legacy=JSON.parse(localStorage.getItem('familyChef_v1')||'null');
-  return {menus:{},cooked:[],favorites:[],recipes:[],shopping:[],legacyAvailable:!!legacy};
- }catch{return {menus:{},cooked:[],favorites:[],recipes:[],shopping:[]}}
+  return {menus:{},cooked:[],favorites:[],recipes:[],shopping:[],settings:{adult1Name:'',adult2Name:'',childName:'Olivia',childAge:12,a1LunchHome:false,a1LunchBox:false,a2LunchHome:false,a2LunchBox:true,a1Dinner:true,a2Dinner:true,childDinner:true,preferences:'',allergies:'Papà: allergia a legumi e derivati, arachidi e anacardi.'},legacyAvailable:!!legacy};
+ }catch{return {menus:{},cooked:[],favorites:[],recipes:[],shopping:[],settings:{childName:'Olivia',childAge:12,a2LunchBox:true,a1Dinner:true,a2Dinner:true,childDinner:true,allergies:'Papà: allergia a legumi e derivati, arachidi e anacardi.'}}}
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(state));renderAll()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function toast(s){const t=$('#toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 function go(view){$$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===view));$$('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+view));window.scrollTo({top:0,behavior:'smooth'})}
 $$('.tab').forEach(b=>b.onclick=()=>go(b.dataset.view));$('#settingsBtn').onclick=()=>go('settings');
-function currentMenu(){const key=weekKey();if(!state.menus[key])state.menus[key]=buildWeeklyMenu();return state.menus[key]}
+function peopleForMeal(){
+ const s=state.settings||{}; const names=[];
+ if(activeMealIndex?.meal==='lunch'){if(s.a1LunchHome)names.push(s.adult1Name||'Adulto 1');if(s.a2LunchHome)names.push(s.adult2Name||'Adulto 2');}
+ else if(activeMealIndex?.meal==='box'){if(s.a2LunchBox)names.push((s.adult2Name||'Papà')+' (schiscetta)');if(s.a1LunchBox)names.push((s.adult1Name||'Adulto 1')+' (schiscetta)');}
+ else {if(s.a1Dinner)names.push(s.adult1Name||'Adulto 1');if(s.a2Dinner)names.push(s.adult2Name||'Adulto 2');if(s.childDinner)names.push(`${s.childName||'Bambino/a'} (${s.childAge||'età da indicare'} mesi)`);}
+ return names.length?`${names.length} ${names.length===1?'persona':'persone'}: `+names.join(', '):'Persone da configurare nelle Impostazioni';
+}
+const settingIds=['adult1Name','adult2Name','childName','childAge','otherPeople','a1LunchHome','a1LunchBox','a2LunchHome','a2LunchBox','a1Dinner','a2Dinner','childDinner','preferences','allergies'];
+function fillSettings(){const s=state.settings||{};settingIds.forEach(id=>{const el=$('#'+id);if(!el)return;const val=s[id];if(el.type==='checkbox')el.checked=!!val;else if(val!==undefined)el.value=val;});}
+function readSettings(){const s={...(state.settings||{})};settingIds.forEach(id=>{const el=$('#'+id);if(!el)return;s[id]=el.type==='checkbox'?el.checked:el.value;});state.settings=s;save();toast('Impostazioni salvate');}
+$('#familySettingsForm').onsubmit=e=>{e.preventDefault();readSettings()};fillSettings();
+
+function currentMenu(){const key=weekKey();if(!state.menus[key]){state.menus[key]=buildWeeklyMenu();if(typeof generateShoppingFromMenu==='function')generateShoppingFromMenu();}return state.menus[key]}
 function allergenBlocked(recipe){
  const text=(recipe.name+' '+(Array.isArray(recipe.ingredients)?recipe.ingredients.join(' '):recipe.ingredients||'')).toLowerCase();
  // Conservative keyword screen only: it cannot guarantee absence of hidden ingredients or cross-contact.
@@ -66,33 +78,43 @@ function recipeForName(name){
 function recipeButton(name,dayIndex,mealKey,label,extra=''){return `<button type="button" class="meal-block meal-open ${extra}" data-name="${encodeURIComponent(name)}" data-day="${dayIndex}" data-meal="${mealKey}" aria-label="Apri ${esc(label)}: ${esc(name||'Da pianificare')}"><span class="meal-label">${esc(label)}</span><span class="meal-recipe">${esc(name||'Da pianificare')}</span><svg class="meal-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>`}
 function renderMenu(){
  const menu=currentMenu();
- $('#menuList').innerHTML=menu.map((m,i)=>`<article class="week-day"><header><div><div class="eyebrow">${esc(m.day)}</div><h3>${esc(new Date(weekStart().getTime()+i*86400000).toLocaleDateString('it-IT',{day:'numeric',month:'long'}))}</h3></div><button class="small-btn edit-day" data-i="${i}">Modifica giorno</button></header><div class="meal-columns">${recipeButton(m.lunch,i,'lunch','Pranzo')}${recipeButton(m.dinner,i,'dinner','Cena','dinner')}${recipeButton(m.box,i,'box','Schiscetta')}</div></article>`).join('');
+ $('#menuList').innerHTML=menu.map((m,i)=>`<article class="week-day"><header><div><div class="eyebrow">${esc(m.day)}</div><h3>${esc(new Date(weekStart().getTime()+i*86400000).toLocaleDateString('it-IT',{day:'numeric',month:'long'}))}</h3></div><button class="small-btn edit-day" data-i="${i}">Modifica pasto</button></header><div class="meal-columns">${recipeButton(m.lunch,i,'lunch','Pranzo')}${recipeButton(m.dinner,i,'dinner','Cena','dinner')}${recipeButton(m.box,i,'box','Schiscetta')}</div></article>`).join('');
  $$('.meal-open').forEach(b=>b.onclick=()=>{activeMealIndex={day:+b.dataset.day,meal:b.dataset.meal};openRecipe(decodeURIComponent(b.dataset.name))});
- $$('.edit-day').forEach(b=>b.onclick=()=>editDay(+b.dataset.i));
+ $$('.edit-day').forEach(b=>b.onclick=()=>chooseMealToEdit(+b.dataset.i));
  $('#mealCount').textContent=menu.length;
 }
-function editDay(i){const m=currentMenu()[i];const lunch=prompt('Pranzo',m.lunch);if(lunch===null)return;const dinner=prompt('Cena',m.dinner);if(dinner===null)return;const box=prompt('Schiscetta',m.box);if(box===null)return;Object.assign(m,{lunch:lunch.trim(),dinner:dinner.trim(),box:box.trim()});save();toast('Giornata aggiornata')}
+function chooseMealToEdit(i){
+ const m=currentMenu()[i];
+ const choice=prompt(`Quale pasto vuoi cambiare?\n1 = Pranzo (${m.lunch})\n2 = Cena (${m.dinner})\n3 = Schiscetta (${m.box})\nInserisci 1, 2 o 3`);
+ if(choice===null)return;
+ const map={'1':['lunch','Pranzo'],'2':['dinner','Cena'],'3':['box','Schiscetta']};
+ const selected=map[choice.trim()]; if(!selected){toast('Seleziona 1, 2 o 3');return;}
+ const [key,label]=selected; const value=prompt(`Nuova ricetta per ${label}`,m[key]);
+ if(value===null||!value.trim())return; m[key]=value.trim(); generateShoppingFromMenu(); save(); toast(`${label} aggiornato`);
+}
 function rotateMenu(){
  const key=weekKey();
  state.menus[key]=buildWeeklyMenu();
- save();toast('Nuova bozza creata dal catalogo: verifica sempre ingredienti e allergeni')
+ generateShoppingFromMenu(); save();toast('Nuova bozza creata dal catalogo: verifica sempre ingredienti e allergeni')
 }
-$('#generateMenu').onclick=rotateMenu;$('#changeMenu').onclick=rotateMenu;
+$('#generateMenu').onclick=()=>{if(confirm('Stai per rigenerare e sostituire il menu della settimana. Vuoi continuare?'))rotateMenu()};const changeButton=$('#changeMenu');if(changeButton)changeButton.remove();
 function openRecipe(name){
  activeRecipe=recipeForName(name);
  $('#recipeDialogTitle').textContent=activeRecipe.name;
  const ing=Array.isArray(activeRecipe.ingredients)?activeRecipe.ingredients:[];
- $('#recipeDialogBody').innerHTML=`<p><strong>Ingredienti</strong></p><p>${ing.length?esc(ing.join(', ')):'Ingredienti da completare.'}</p><p><strong>Preparazione</strong></p><p>${esc(activeRecipe.steps||'Procedimento non disponibile: da verificare.')}</p><p><strong>Tempo</strong></p><p>${esc(activeRecipe.time||'Da verificare')}${activeRecipe.time?' minuti':''}</p><p><strong>Fonte</strong></p><p>${esc(activeRecipe.source||'Non indicata')}</p>${activeRecipe.dataStatus?`<p><strong>Stato dati</strong></p><p>${esc(activeRecipe.dataStatus)}</p>`:''}${activeRecipe.ageNotes?`<p><strong>Età e attenzioni riportate nella scheda</strong></p><p>${esc(activeRecipe.ageNotes)}</p>`:''}${activeRecipe.sourceUrl?`<p><a href="${esc(activeRecipe.sourceUrl)}" target="_blank" rel="noopener">Apri fonte originale</a></p>`:''}<p class="muted tiny">Per il papà, verifica sempre ingredienti composti, allergeni e rischio di contatto crociato. Per Olivia adatta consistenza, taglio e cottura.</p>`;
+ const people=peopleForMeal();
+ $('#recipeDialogBody').innerHTML=`<div class="recipe-note"><strong>Per chi è previsto</strong><p>${esc(people)}</p></div><p><strong>Ingredienti</strong></p><p>${ing.length?esc(ing.join(', ')):'Ingredienti da completare.'}</p><p class="muted tiny">Le quantità non sono riportate qui quando la fonte non le specifica: non vengono stimate automaticamente.</p><p><strong>Preparazione</strong></p><p>${esc(activeRecipe.steps||'Procedimento non disponibile: da verificare.')}</p><p><strong>Tempo</strong></p><p>${esc(activeRecipe.time||'Da verificare')}${activeRecipe.time?' minuti':''}</p><p><strong>Fonte</strong></p><p>${esc(activeRecipe.source||'Non indicata')}</p>${activeRecipe.ageNotes?`<div class="recipe-note"><strong>Età e attenzioni</strong><p>${esc(activeRecipe.ageNotes)}</p></div>`:''}${activeRecipe.sourceUrl?`<p><a href="${esc(activeRecipe.sourceUrl)}" target="_blank" rel="noopener">Apri fonte originale</a></p>`:''}<div class="recipe-note"><strong>Nota per la famiglia</strong><p>Per il papà, verifica ingredienti composti, allergeni e rischio di contatto crociato. Per Olivia adatta consistenza, taglio e cottura.</p></div>`;
  $('#favoriteToggle').textContent=state.favorites.includes(activeRecipe.name)?'Rimuovi dai preferiti':'Aggiungi ai preferiti';
  $('#markCooked').textContent=state.cooked.some(x=>x.name===activeRecipe.name&&x.week!==weekKey())?'Già nell’archivio':'Segna come cucinata';
  $('#recipeDialog').showModal();
 }
+$('#editMealBtn').onclick=()=>{if(!activeMealIndex){toast('Apri la ricetta dal menu per cambiare il pasto');return;}const m=currentMenu()[activeMealIndex.day];const key=activeMealIndex.meal;const labels={lunch:'Pranzo',dinner:'Cena',box:'Schiscetta'};const value=prompt(`Cambia ${labels[key]}`,m[key]);if(value===null||!value.trim())return;m[key]=value.trim();generateShoppingFromMenu();save();$('#recipeDialog').close();toast(`${labels[key]} aggiornato`)};
 $('#favoriteToggle').onclick=()=>{if(!activeRecipe)return;const n=activeRecipe.name;state.favorites=state.favorites.includes(n)?state.favorites.filter(x=>x!==n):[...state.favorites,n];save();$('#favoriteToggle').textContent=state.favorites.includes(n)?'Rimuovi dai preferiti':'Aggiungi ai preferiti';toast('Preferiti aggiornati')};
 $('#markCooked').onclick=()=>{if(!activeRecipe)return;const item={name:activeRecipe.name,week:weekKey(),recipe:activeRecipe};state.cooked=state.cooked.filter(x=>!(x.name===item.name&&x.week===item.week));state.cooked.push(item);save();toast('Ricetta segnata come cucinata');};
 function renderRecipes(){
  const q=($('#recipeSearch').value||'').toLowerCase();
  const prior=state.cooked.filter(x=>x.week!==weekKey()).filter((x,i,a)=>a.findIndex(y=>y.name===x.name)===i).filter(x=>x.name.toLowerCase().includes(q));
- $('#recipeList').innerHTML=prior.length?prior.map(x=>`<article class="recipe-card"><h3><button class="recipe-title" data-name="${encodeURIComponent(x.name)}">${esc(x.name)}</button></h3><p class="muted">Cucinata in una settimana precedente</p></article>`).join(''):'<div class="empty">Nessuna ricetta archiviata. Quando segnerai una ricetta come cucinata, comparirà qui dopo la fine della settimana corrente.</div>';
+ $('#recipeList').innerHTML=prior.length?prior.map(x=>`<article class="recipe-card"><h3><button class="recipe-title" data-name="${encodeURIComponent(x.name)}">${esc(x.name)}</button></h3><p class="muted">Cucinata in una settimana precedente</p></article>`).join(''):'<div class="empty">Nessuna ricetta ancora salvata. Segna una ricetta come cucinata per ritrovarla qui nelle settimane successive.</div>';
  $$('.recipe-title').forEach(b=>b.onclick=()=>openRecipe(decodeURIComponent(b.dataset.name)));
  $('#cookedCount').textContent=prior.length;
 }
@@ -104,7 +126,18 @@ function renderFavorites(){
 $('#recipeSearch').oninput=renderRecipes;
 $('#addRecipeBtn').onclick=()=>$('#addDialog').showModal();
 $('#addForm').onsubmit=e=>{e.preventDefault();const r={name:$('#newRecipeName').value.trim(),ingredients:$('#newRecipeIngredients').value.split(',').map(x=>x.trim()).filter(Boolean),steps:$('#newRecipeSteps').value.trim(),time:$('#newRecipeTime').value||'',source:'Ricetta personale'};state.recipes.push(r);$('#addDialog').close();e.target.reset();save();toast('Ricetta salvata');};
-$('#makeShopping').onclick=()=>{const menu=currentMenu();const items=[...new Set(menu.flatMap(m=>[m.lunch,m.dinner,m.box]).filter(Boolean))];state.shopping=items.map(name=>({id:Date.now()+Math.random(),name,checked:false,category:'Da pianificare'}));save();go('shopping');toast('Aggiunti i piatti alla lista: completa gli ingredienti e le quantità')};
+function generateShoppingFromMenu(){
+ const menu=currentMenu(); const ingredients=[]; const seen=new Set();
+ menu.forEach((day,i)=>['lunch','dinner','box'].forEach(meal=>{
+  if(meal==='lunch'&&!((state.settings||{}).a1LunchHome||(state.settings||{}).a2LunchHome))return;
+  if(meal==='box'&&!((state.settings||{}).a1LunchBox||(state.settings||{}).a2LunchBox))return;
+  const r=recipeForName(day[meal]);
+  (r.ingredients||[]).forEach(raw=>{const name=String(raw).trim();if(!name)return;const key=name.toLocaleLowerCase('it');if(!seen.has(key)){seen.add(key);ingredients.push({id:Date.now()+Math.random(),name,checked:false,category:'Dal menu · quantità da verificare'});}});
+ }));
+ const previous=new Map((state.shopping||[]).map(x=>[String(x.name).toLocaleLowerCase('it'),!!x.checked]));
+ state.shopping=ingredients.map(x=>({...x,checked:previous.get(x.name.toLocaleLowerCase('it'))||false}));
+}
+$('#makeShopping').textContent='Aggiorna lista della spesa dal menu';$('#makeShopping').onclick=()=>{generateShoppingFromMenu();save();go('shopping');toast('Lista generata dagli ingredienti disponibili nelle ricette')};
 $('#shoppingForm').onsubmit=e=>{e.preventDefault();const name=$('#shoppingInput').value.trim();if(!name)return;state.shopping.push({id:Date.now(),name,checked:false});$('#shoppingInput').value='';save()};
 function renderShopping(){
  $('#shoppingList').innerHTML=state.shopping.length?state.shopping.map(x=>`<div class="shopping-row"><label><input type="checkbox" data-id="${x.id}" ${x.checked?'checked':''}><span class="${x.checked?'checked':''}">${esc(x.name)}</span></label><button class="delete-btn del-shopping" data-id="${x.id}" aria-label="Elimina">×</button></div>`).join(''):'<div class="empty">La lista è vuota. Aggiungi i prodotti da comprare.</div>';
@@ -116,7 +149,7 @@ $('#clearChecked').onclick=()=>{state.shopping=state.shopping.filter(x=>!x.check
 $('#exportList').onclick=()=>{const txt=state.shopping.filter(x=>!x.checked).map(x=>'- '+x.name).join('\n');if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>toast('Lista copiata')).catch(()=>prompt('Copia la lista',txt));else prompt('Copia la lista',txt)};
 $('#exportData').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='family-chef-dati.json';a.click();URL.revokeObjectURL(a.href)};
 $('#clearData').onclick=()=>{if(confirm('Vuoi cancellare menu, preferiti, ricette cucinate e lista della spesa salvati su questo dispositivo?')){localStorage.removeItem(KEY);state={menus:{},cooked:[],favorites:[],recipes:[],shopping:[]};save();toast('Dati cancellati')}};
-function renderAll(){formatWeek();renderMenu();renderRecipes();renderFavorites();renderShopping()}
+function renderAll(){formatWeek();renderMenu();renderRecipes();renderFavorites();renderShopping();}
 renderAll();
 // If a menu was generated by the Sunday Netlify function, load it when this week's menu is not already saved locally.
 (async function loadScheduledMenu(){
